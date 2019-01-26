@@ -1,20 +1,47 @@
-FROM ubuntu:12.04
+#
+# RabbitMQ Dockerfile
+#
+# https://github.com/dockerfile/rabbitmq
+#
 
-# Install dependencies
-RUN apt-get update -y
-RUN apt-get install -y git curl apache2 php5 libapache2-mod-php5 php5-mcrypt php5-mysql
+# Pull base image.
+#FROM dockerfile/ubuntu
+FROM ubuntu:latest
 
-# Install app
-RUN rm -rf /var/www/*
-ADD src /var/www
+# Add files.
+ADD bin/rabbitmq-start /usr/local/bin/
+RUN  apt-get update \
+  && apt-get install -y wget \
+  && rm -rf /var/lib/apt/lists/*
 
-# Configure apache
-RUN a2enmod rewrite
-RUN chown -R www-data:www-data /var/www
-ENV APACHE_RUN_USER www-data
-ENV APACHE_RUN_GROUP www-data
-ENV APACHE_LOG_DIR /var/log/apache2
+RUN apt-get update && apt-get install -y gnupg
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils
 
-EXPOSE 80
+# Install RabbitMQ.
+RUN \
+  #wget -qO - https://www.rabbitmq.com/rabbitmq-signing-key-public.asc | apt-key add - && \
+  wget -qO - https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc | apt-key add - && \
+  echo "deb http://www.rabbitmq.com/debian/ testing main" > /etc/apt/sources.list.d/rabbitmq.list && \
+  apt-get update && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y rabbitmq-server && \
+  rm -rf /var/lib/apt/lists/* && \
+  rabbitmq-plugins enable rabbitmq_management && \
+  echo "[{rabbit, [{loopback_users, []}]}]." > /etc/rabbitmq/rabbitmq.config && \
+  chmod +x /usr/local/bin/rabbitmq-start
 
-CMD ["/usr/sbin/apache2", "-D",  "FOREGROUND"]
+# Define environment variables.
+ENV RABBITMQ_LOG_BASE /data/log
+ENV RABBITMQ_MNESIA_BASE /data/mnesia
+
+# Define mount points.
+VOLUME ["/data/log", "/data/mnesia"]
+
+# Define working directory.
+WORKDIR /data
+
+# Define default command.
+CMD ["rabbitmq-start"]
+
+# Expose ports.
+EXPOSE 5672
+EXPOSE 15672
