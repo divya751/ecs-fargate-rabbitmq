@@ -25,7 +25,7 @@ RUN \
   apt-get update && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y rabbitmq-server && \
   rm -rf /var/lib/apt/lists/* && \
-  rabbitmq-plugins enable rabbitmq_management && 
+  rabbitmq-plugins enable rabbitmq_management
   ENV HOME /var/lib/rabbitmq
   ENV PATH /usr/lib/rabbitmq/bin:$PATH
   
