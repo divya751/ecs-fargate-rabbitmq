@@ -51,8 +51,8 @@ RUN ln -sf /usr/lib/rabbitmq/lib/rabbitmq_server-$RABBITMQ_VERSION/plugins /plug
 RUN apt-get update && apt-get install -y python python-pip python-dev build-essential vim \
 	&& pip install pika
 
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
+#COPY docker-entrypoint.sh /usr/local/bin/
+#RUN ln -s /usr/local/bin/docker-entrypoint.sh / # backwards compat
 RUN rabbitmq-plugins enable --offline rabbitmq_management
 ENTRYPOINT ["docker-entrypoint.sh"]
 
